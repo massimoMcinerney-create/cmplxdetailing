@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>CMPLX Detailing CGI Scroll Experience</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
   <style>
     body {
       margin: 0;
@@ -82,6 +85,244 @@
       background: rgba(255,255,255,0.75);
       transition: width 0.15s linear;
     }
+
+    /* ══════════════════════════════════════════
+       STAGE OVERLAYS
+    ══════════════════════════════════════════ */
+
+    /* Shared base — all scroll-driven stage panels */
+    .stage-ov {
+      position: fixed;
+      bottom: 10vh;
+      left: 8vw;
+      z-index: 5;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ov-accent {
+      display: block;
+      width: 26px;
+      height: 2px;
+      background: #b3001b;
+      margin-bottom: 14px;
+    }
+
+    .ov-num {
+      display: block;
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.44em;
+      color: rgba(190, 168, 138, 0.72);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .ov-title {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(52px, 7.5vw, 116px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 0.88;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin: 0 0 20px;
+      text-shadow: 0 0 80px rgba(0,0,0,0.95), 0 2px 18px rgba(0,0,0,0.8);
+    }
+
+    .ov-desc {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(10px, 1.05vw, 13px);
+      font-weight: 300;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: rgba(200, 190, 175, 0.6);
+      line-height: 1.8;
+    }
+
+    /* ── Hero overlay ─────────────────────── */
+
+    #ov-hero {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      opacity: 1;
+      pointer-events: none;
+    }
+
+    .hero-ghost {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(110px, 22vw, 320px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      color: rgba(255,255,255,0.022);
+      line-height: 1;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.48em;
+      color: rgba(190, 168, 138, 0.68);
+      text-transform: uppercase;
+      margin-bottom: 22px;
+    }
+
+    .hero-headline {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(40px, 5.5vw, 84px);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      line-height: 1.0;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin: 0 0 22px;
+      text-shadow: 0 0 100px rgba(0,0,0,1), 0 4px 40px rgba(0,0,0,0.9);
+    }
+
+    .hero-sub {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(10px, 1.1vw, 14px);
+      font-weight: 300;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+      color: rgba(200, 190, 175, 0.52);
+    }
+
+    .hero-scroll-hint {
+      position: absolute;
+      bottom: 8vh;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.24);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .hero-scroll-hint::after {
+      content: '';
+      display: block;
+      width: 1px;
+      height: 52px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.24), transparent);
+      animation: scrollPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes scrollPulse {
+      0%, 100% { opacity: 0.28; transform: scaleY(1);    }
+      50%       { opacity: 0.70; transform: scaleY(0.82); }
+    }
+
+    /* ── Final Reveal — centred + pricing ─── */
+
+    #ov-final {
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    #ov-final .ov-accent {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .pricing-eyebrow {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.55em;
+      text-transform: uppercase;
+      color: rgba(190, 168, 138, 0.52);
+      margin: 28px 0 20px;
+    }
+
+    .pricing-grid {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 32px;
+    }
+
+    .pkg {
+      flex: 1;
+      padding: 22px 28px 24px;
+      border: 1px solid rgba(255,255,255,0.065);
+      background: rgba(0,0,0,0.52);
+      min-width: 118px;
+    }
+
+    .pkg-featured {
+      border-color: rgba(179,0,27,0.42);
+      background: rgba(179,0,27,0.07);
+    }
+
+    .pkg-name {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 400;
+      letter-spacing: 0.36em;
+      text-transform: uppercase;
+      color: rgba(200,190,175,0.62);
+      margin-bottom: 6px;
+    }
+
+    .pkg-time {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(180,160,130,0.38);
+      margin-bottom: 14px;
+    }
+
+    .pkg-price {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(26px, 2.8vw, 40px);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .cta-btn {
+      display: inline-block;
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.42em;
+      text-transform: uppercase;
+      color: #ffffff;
+      background: #b3001b;
+      padding: 16px 46px 14px;
+      text-decoration: none;
+      pointer-events: auto;
+      transition: background 0.25s ease, letter-spacing 0.25s ease;
+    }
+
+    .cta-btn:hover {
+      background: #d1001f;
+      letter-spacing: 0.52em;
+    }
   </style>
 </head>
 
@@ -94,6 +335,70 @@
 
 <div class="overlay">
   CMPLX DETAILING — CGI SCROLL ENGINE
+</div>
+
+<!-- ── Hero overlay ───────────────────────────── -->
+<div id="ov-hero">
+  <span class="hero-ghost" aria-hidden="true">CMPLX</span>
+  <p class="hero-eyebrow">Automotive Detailing Studio</p>
+  <h1 class="hero-headline">The Detail<br>Is Everything.</h1>
+  <p class="hero-sub">Premium care. Zero compromise.</p>
+  <span class="hero-scroll-hint">Scroll</span>
+</div>
+
+<!-- ── Stage overlays ──────────────────────────── -->
+<div id="ov-prewash" class="stage-ov">
+  <span class="ov-accent"></span>
+  <span class="ov-num">01 / Pre-Wash</span>
+  <h2 class="ov-title">Pre-<br>Wash</h2>
+  <p class="ov-desc">Contaminant removal.<br>No shortcuts.</p>
+</div>
+
+<div id="ov-foambath" class="stage-ov">
+  <span class="ov-accent"></span>
+  <span class="ov-num">02 / Foam Bath</span>
+  <h2 class="ov-title">Foam<br>Bath</h2>
+  <p class="ov-desc">Snow foam. Dwell time.<br>Full encapsulation.</p>
+</div>
+
+<div id="ov-contactwash" class="stage-ov">
+  <span class="ov-accent"></span>
+  <span class="ov-num">03 / Contact Wash</span>
+  <h2 class="ov-title">Contact<br>Wash</h2>
+  <p class="ov-desc">Lubricated microfiber.<br>Zero swirl. Zero compromise.</p>
+</div>
+
+<div id="ov-dry" class="stage-ov">
+  <span class="ov-accent"></span>
+  <span class="ov-num">04 / Dry Process</span>
+  <h2 class="ov-title">Dry<br>Process</h2>
+  <p class="ov-desc">Forced air. Panel by panel.<br>Spotless finish.</p>
+</div>
+
+<div id="ov-final" class="stage-ov">
+  <span class="ov-accent"></span>
+  <span class="ov-num">05 / Final Reveal</span>
+  <h2 class="ov-title">Final<br>Reveal</h2>
+  <p class="ov-desc">Ceramic-grade protection. Delivered.</p>
+  <p class="pricing-eyebrow">Detail Packages</p>
+  <div class="pricing-grid">
+    <div class="pkg">
+      <div class="pkg-name">Essential</div>
+      <div class="pkg-time">4 Hours</div>
+      <div class="pkg-price">$299</div>
+    </div>
+    <div class="pkg pkg-featured">
+      <div class="pkg-name">Signature</div>
+      <div class="pkg-time">7 Hours</div>
+      <div class="pkg-price">$549</div>
+    </div>
+    <div class="pkg">
+      <div class="pkg-name">Prestige</div>
+      <div class="pkg-time">Full Day</div>
+      <div class="pkg-price">$999</div>
+    </div>
+  </div>
+  <a class="cta-btn" href="#">Book Your Session &rarr;</a>
 </div>
 
 <div class="section">PRE-WASH</div>
@@ -309,6 +614,46 @@ tl.to(carGroup.scale, {
 ========================= */
 
 tl.to({}, { duration: 1 });
+
+/* =========================
+   STAGE OVERLAY ANIMATIONS
+   Separate ScrollTrigger per section — never touches the camera tl.
+========================= */
+
+const sections  = document.querySelectorAll(".section");
+const stageIds  = ["#ov-prewash", "#ov-foambath", "#ov-contactwash", "#ov-dry", "#ov-final"];
+
+// Hero: starts fully visible, dissolves as first section scrolls in
+gsap.to("#ov-hero", {
+  opacity: 0,
+  y: -38,
+  ease: "none",
+  scrollTrigger: {
+    trigger: sections[0],
+    start: "top 88%",
+    end:   "top 22%",
+    scrub: 0.5,
+  }
+});
+
+// Each stage overlay: fade up in → hold → fade up out
+sections.forEach((section, i) => {
+  gsap.timeline({
+    scrollTrigger: {
+      trigger: section,
+      start: "top 62%",
+      end:   "bottom 38%",
+      scrub: 0.5,
+    }
+  })
+  .fromTo(stageIds[i],
+    { opacity: 0, y: 32 },
+    { opacity: 1, y: 0,   duration: 0.38, ease: "none" }
+  )
+  .to(stageIds[i],
+    { opacity: 0, y: -32, duration: 0.38, ease: "none" }
+  );
+});
 
 /* =========================
    RESIZE HANDLER
