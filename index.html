@@ -38,10 +38,59 @@
       font-size: 14px;
       opacity: 0.8;
     }
+
+    /* ── Loading screen ── */
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      transition: opacity 0.9s ease;
+      pointer-events: none;
+    }
+
+    #loading-screen.hidden {
+      opacity: 0;
+    }
+
+    #loading-label {
+      color: rgba(255,255,255,0.35);
+      font-size: 11px;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      margin-bottom: 28px;
+      font-family: Arial, sans-serif;
+    }
+
+    #loading-track {
+      width: 180px;
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    #loading-bar {
+      position: absolute;
+      top: 0; left: 0;
+      height: 100%;
+      width: 0%;
+      background: rgba(255,255,255,0.75);
+      transition: width 0.15s linear;
+    }
   </style>
 </head>
 
 <body>
+
+<div id="loading-screen">
+  <div id="loading-label">CMPLX Detailing — Loading</div>
+  <div id="loading-track"><div id="loading-bar"></div></div>
+</div>
 
 <div class="overlay">
   CMPLX DETAILING — CGI SCROLL ENGINE
@@ -55,8 +104,10 @@
 
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { RoomEnvironment } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js";
 import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
 import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js";
+import { initCarLoader } from "./js/carLoader.js";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -79,7 +130,19 @@ camera.position.set(0, 1, 6);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
+
+/* =========================
+   ENVIRONMENT MAP
+   Studio-quality IBL for metallic paint reflections.
+   Does not affect background (stays black).
+========================= */
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+pmrem.dispose();
 
 /* =========================
    LIGHTING RIG
@@ -87,6 +150,13 @@ document.body.appendChild(renderer.domElement);
 
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
 keyLight.position.set(5, 5, 5);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.left   = -6;
+keyLight.shadow.camera.right  =  6;
+keyLight.shadow.camera.top    =  6;
+keyLight.shadow.camera.bottom = -6;
+keyLight.shadow.bias = -0.001;
 scene.add(keyLight);
 
 const rimLight = new THREE.DirectionalLight(0xff0033, 0.8);
@@ -97,36 +167,65 @@ const ambient = new THREE.AmbientLight(0x222222);
 scene.add(ambient);
 
 /* =========================
-   FLOATING CORVETTE (PROXY)
+   REFLECTIVE STUDIO FLOOR
+   Dark metallic disc — catches shadow + env reflections.
 ========================= */
 
-const carGroup = new THREE.Group();
-
-const body = new THREE.Mesh(
-  new THREE.BoxGeometry(2, 0.6, 4),
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(8, 72),
   new THREE.MeshStandardMaterial({
-    color: 0xb3001b, // cherry red
-    metalness: 0.9,
-    roughness: 0.25
+    color:           0x050505,
+    metalness:       0.85,
+    roughness:       0.18,
+    envMapIntensity: 1.6,
   })
 );
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
 
-body.position.y = 0.5;
-carGroup.add(body);
+/* =========================
+   LOADING SCREEN HANDLERS
+========================= */
 
-scene.add(carGroup);
+const loadingScreen = document.getElementById("loading-screen");
+const loadingBar    = document.getElementById("loading-bar");
 
-/* floating illusion */
+function _onProgress(p) {
+  if (loadingBar) loadingBar.style.width = `${Math.round(p * 100)}%`;
+}
+
+function _onLoaded() {
+  if (loadingBar) loadingBar.style.width = "100%";
+  setTimeout(() => {
+    if (loadingScreen) loadingScreen.classList.add("hidden");
+  }, 400);
+}
+
+/* =========================
+   CAR LOADER
+   carGroup   — GSAP scroll target (position / rotation / scale)
+   floatPivot — render-loop float animation target
+========================= */
+
+const { carGroup, floatPivot } = initCarLoader(scene, {
+  onProgress: _onProgress,
+  onLoaded:   _onLoaded,
+});
+
 carGroup.position.y = 0.3;
 
 /* =========================
    RENDER LOOP
 ========================= */
 
+const clock = new THREE.Clock();
+
 function animate() {
   requestAnimationFrame(animate);
 
-  carGroup.rotation.y += 0.002;
+  // Float — drives floatPivot only; GSAP owns carGroup.position/rotation
+  floatPivot.position.y = Math.sin(clock.getElapsedTime() * 0.85) * 0.07;
 
   renderer.render(scene, camera);
 }
