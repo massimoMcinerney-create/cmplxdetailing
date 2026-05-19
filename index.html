@@ -3,9 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <title>CMPLX Detailing CGI Scroll Experience</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     body {
       margin: 0;
@@ -40,9 +42,11 @@
       z-index: 10;
       font-size: 14px;
       opacity: 0.8;
+      font-family: 'Oswald', Arial, sans-serif;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
     }
 
-    /* ── Loading screen ── */
     #loading-screen {
       position: fixed;
       inset: 0;
@@ -66,7 +70,7 @@
       letter-spacing: 0.35em;
       text-transform: uppercase;
       margin-bottom: 28px;
-      font-family: Arial, sans-serif;
+      font-family: 'Oswald', Arial, sans-serif;
     }
 
     #loading-track {
@@ -79,18 +83,14 @@
 
     #loading-bar {
       position: absolute;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       height: 100%;
       width: 0%;
       background: rgba(255,255,255,0.75);
       transition: width 0.15s linear;
     }
 
-    /* ══════════════════════════════════════════
-       STAGE OVERLAYS
-    ══════════════════════════════════════════ */
-
-    /* Shared base — all scroll-driven stage panels */
     .stage-ov {
       position: fixed;
       bottom: 10vh;
@@ -140,8 +140,6 @@
       color: rgba(200, 190, 175, 0.6);
       line-height: 1.8;
     }
-
-    /* ── Hero overlay ─────────────────────── */
 
     #ov-hero {
       position: fixed;
@@ -229,11 +227,9 @@
     }
 
     @keyframes scrollPulse {
-      0%, 100% { opacity: 0.28; transform: scaleY(1);    }
-      50%       { opacity: 0.70; transform: scaleY(0.82); }
+      0%, 100% { opacity: 0.28; transform: scaleY(1); }
+      50% { opacity: 0.70; transform: scaleY(0.82); }
     }
-
-    /* ── Final Reveal — centred + pricing ─── */
 
     #ov-final {
       left: 50%;
@@ -333,11 +329,8 @@
   <div id="loading-track"><div id="loading-bar"></div></div>
 </div>
 
-<div class="overlay">
-  CMPLX DETAILING — CGI SCROLL ENGINE
-</div>
+<div class="overlay">CMPLX Detailing — CGI Scroll Engine</div>
 
-<!-- ── Hero overlay ───────────────────────────── -->
 <div id="ov-hero">
   <span class="hero-ghost" aria-hidden="true">CMPLX</span>
   <p class="hero-eyebrow">Automotive Detailing Studio</p>
@@ -346,7 +339,6 @@
   <span class="hero-scroll-hint">Scroll</span>
 </div>
 
-<!-- ── Stage overlays ──────────────────────────── -->
 <div id="ov-prewash" class="stage-ov">
   <span class="ov-accent"></span>
   <span class="ov-num">01 / Pre-Wash</span>
@@ -381,24 +373,28 @@
   <h2 class="ov-title">Final<br>Reveal</h2>
   <p class="ov-desc">Ceramic-grade protection. Delivered.</p>
   <p class="pricing-eyebrow">Detail Packages</p>
+
   <div class="pricing-grid">
     <div class="pkg">
-      <div class="pkg-name">Essential</div>
-      <div class="pkg-time">4 Hours</div>
-      <div class="pkg-price">$299</div>
+      <div class="pkg-name">Exterior</div>
+      <div class="pkg-time">Starting</div>
+      <div class="pkg-price">$110</div>
     </div>
+
     <div class="pkg pkg-featured">
-      <div class="pkg-name">Signature</div>
-      <div class="pkg-time">7 Hours</div>
-      <div class="pkg-price">$549</div>
+      <div class="pkg-name">Interior</div>
+      <div class="pkg-time">Starting</div>
+      <div class="pkg-price">$135</div>
     </div>
+
     <div class="pkg">
-      <div class="pkg-name">Prestige</div>
-      <div class="pkg-time">Full Day</div>
-      <div class="pkg-price">$999</div>
+      <div class="pkg-name">Combo</div>
+      <div class="pkg-time">Best Value</div>
+      <div class="pkg-price">$220</div>
     </div>
   </div>
-  <a class="cta-btn" href="#">Book Your Session &rarr;</a>
+
+  <a class="cta-btn" href="#">Book Now &rarr;</a>
 </div>
 
 <div class="section">PRE-WASH</div>
@@ -408,17 +404,13 @@
 <div class="section">FINAL REVEAL</div>
 
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { RoomEnvironment } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js";
-import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
-import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js";
+import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+import { RoomEnvironment } from "https://unpkg.com/three@0.160.0/examples/jsm/environments/RoomEnvironment.js";
+import gsap from "https://cdn.skypack.dev/gsap";
+import { ScrollTrigger } from "https://cdn.skypack.dev/gsap/ScrollTrigger";
 import { initCarLoader } from "./js/carLoader.js";
 
 gsap.registerPlugin(ScrollTrigger);
-
-/* =========================
-   SCENE SETUP
-========================= */
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog(0x000000, 5, 20);
@@ -436,30 +428,20 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
-
-/* =========================
-   ENVIRONMENT MAP
-   Studio-quality IBL for metallic paint reflections.
-   Does not affect background (stays black).
-========================= */
 
 const pmrem = new THREE.PMREMGenerator(renderer);
 scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
 pmrem.dispose();
 
-/* =========================
-   LIGHTING RIG
-========================= */
-
 const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
 keyLight.position.set(5, 5, 5);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
-keyLight.shadow.camera.left   = -6;
-keyLight.shadow.camera.right  =  6;
-keyLight.shadow.camera.top    =  6;
+keyLight.shadow.camera.left = -6;
+keyLight.shadow.camera.right = 6;
+keyLight.shadow.camera.top = 6;
 keyLight.shadow.camera.bottom = -6;
 keyLight.shadow.bias = -0.001;
 scene.add(keyLight);
@@ -471,75 +453,50 @@ scene.add(rimLight);
 const ambient = new THREE.AmbientLight(0x222222);
 scene.add(ambient);
 
-/* =========================
-   REFLECTIVE STUDIO FLOOR
-   Dark metallic disc — catches shadow + env reflections.
-========================= */
-
 const floor = new THREE.Mesh(
   new THREE.CircleGeometry(8, 72),
   new THREE.MeshStandardMaterial({
-    color:           0x050505,
-    metalness:       0.85,
-    roughness:       0.18,
+    color: 0x050505,
+    metalness: 0.85,
+    roughness: 0.18,
     envMapIntensity: 1.6,
   })
 );
+
 floor.rotation.x = -Math.PI / 2;
 floor.receiveShadow = true;
 scene.add(floor);
 
-/* =========================
-   LOADING SCREEN HANDLERS
-========================= */
-
 const loadingScreen = document.getElementById("loading-screen");
-const loadingBar    = document.getElementById("loading-bar");
+const loadingBar = document.getElementById("loading-bar");
 
-function _onProgress(p) {
+function onProgress(p) {
   if (loadingBar) loadingBar.style.width = `${Math.round(p * 100)}%`;
 }
 
-function _onLoaded() {
+function onLoaded() {
   if (loadingBar) loadingBar.style.width = "100%";
   setTimeout(() => {
     if (loadingScreen) loadingScreen.classList.add("hidden");
   }, 400);
 }
 
-/* =========================
-   CAR LOADER
-   carGroup   — GSAP scroll target (position / rotation / scale)
-   floatPivot — render-loop float animation target
-========================= */
-
 const { carGroup, floatPivot } = initCarLoader(scene, {
-  onProgress: _onProgress,
-  onLoaded:   _onLoaded,
+  onProgress,
+  onLoaded,
 });
 
 carGroup.position.y = 0.3;
-
-/* =========================
-   RENDER LOOP
-========================= */
 
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
-
-  // Float — drives floatPivot only; GSAP owns carGroup.position/rotation
   floatPivot.position.y = Math.sin(clock.getElapsedTime() * 0.85) * 0.07;
-
   renderer.render(scene, camera);
 }
 
 animate();
-
-/* =========================
-   SCROLL CGI TIMELINE
-========================= */
 
 const tl = gsap.timeline({
   scrollTrigger: {
@@ -550,80 +507,20 @@ const tl = gsap.timeline({
   }
 });
 
-/* =========================
-   HERO / FLOAT STATE
-========================= */
-
-tl.to(camera.position, {
-  z: 5
-}, 0);
-
-tl.to(carGroup.position, {
-  y: 0.4
-}, 0);
-
-/* =========================
-   PRE-WASH ZOOM
-========================= */
-
-tl.to(camera.position, {
-  z: 4
-}, 0.2);
-
-/* =========================
-   FOAM STAGE (SLOW ORBIT FEEL)
-========================= */
-
-tl.to(carGroup.rotation, {
-  y: Math.PI * 2
-}, 0.3);
-
-tl.to(keyLight, {
-  intensity: 0.6
-}, 0.3);
-
-/* =========================
-   CONTACT WASH (CRISP LIGHT)
-========================= */
-
-tl.to(keyLight, {
-  intensity: 1.8
-}, 0.5);
-
-tl.to(rimLight, {
-  intensity: 1.2
-}, 0.5);
-
-/* =========================
-   DRY PROCESS (PULL BACK)
-========================= */
-
-tl.to(camera.position, {
-  z: 6,
-  y: 1.2
-}, 0.7);
-
-tl.to(carGroup.scale, {
-  x: 1.05,
-  y: 1.05,
-  z: 1.05
-}, 0.7);
-
-/* =========================
-   FINAL REVEAL HOLD
-========================= */
-
+tl.to(camera.position, { z: 5 }, 0);
+tl.to(carGroup.position, { y: 0.4 }, 0);
+tl.to(camera.position, { z: 4 }, 0.2);
+tl.to(carGroup.rotation, { y: Math.PI * 2 }, 0.3);
+tl.to(keyLight, { intensity: 0.6 }, 0.3);
+tl.to(keyLight, { intensity: 1.8 }, 0.5);
+tl.to(rimLight, { intensity: 1.2 }, 0.5);
+tl.to(camera.position, { z: 6, y: 1.2 }, 0.7);
+tl.to(carGroup.scale, { x: 1.05, y: 1.05, z: 1.05 }, 0.7);
 tl.to({}, { duration: 1 });
 
-/* =========================
-   STAGE OVERLAY ANIMATIONS
-   Separate ScrollTrigger per section — never touches the camera tl.
-========================= */
+const sections = document.querySelectorAll(".section");
+const stageIds = ["#ov-prewash", "#ov-foambath", "#ov-contactwash", "#ov-dry", "#ov-final"];
 
-const sections  = document.querySelectorAll(".section");
-const stageIds  = ["#ov-prewash", "#ov-foambath", "#ov-contactwash", "#ov-dry", "#ov-final"];
-
-// Hero: starts fully visible, dissolves as first section scrolls in
 gsap.to("#ov-hero", {
   opacity: 0,
   y: -38,
@@ -631,33 +528,28 @@ gsap.to("#ov-hero", {
   scrollTrigger: {
     trigger: sections[0],
     start: "top 88%",
-    end:   "top 22%",
+    end: "top 22%",
     scrub: 0.5,
   }
 });
 
-// Each stage overlay: fade up in → hold → fade up out
 sections.forEach((section, i) => {
   gsap.timeline({
     scrollTrigger: {
       trigger: section,
       start: "top 62%",
-      end:   "bottom 38%",
+      end: "bottom 38%",
       scrub: 0.5,
     }
   })
   .fromTo(stageIds[i],
     { opacity: 0, y: 32 },
-    { opacity: 1, y: 0,   duration: 0.38, ease: "none" }
+    { opacity: 1, y: 0, duration: 0.38, ease: "none" }
   )
   .to(stageIds[i],
     { opacity: 0, y: -32, duration: 0.38, ease: "none" }
   );
 });
-
-/* =========================
-   RESIZE HANDLER
-========================= */
 
 window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
