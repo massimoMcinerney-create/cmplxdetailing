@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CMPLX Detailing CGI Scroll Experience</title>
+  <style>
+    body {
+      margin: 0;
+      overflow-x: hidden;
+      background: black;
+      font-family: Arial, sans-serif;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+    }
+
+    .section {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 40px;
+      font-weight: bold;
+      letter-spacing: 2px;
+      opacity: 0;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      z-index: 10;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="overlay">
+  CMPLX DETAILING — CGI SCROLL ENGINE
+</div>
+
+<div class="section">PRE-WASH</div>
+<div class="section">FOAM BATH</div>
+<div class="section">CONTACT WASH</div>
+<div class="section">DRY PROCESS</div>
+<div class="section">FINAL REVEAL</div>
+
+<script type="module">
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
+import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js";
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* =========================
+   SCENE SETUP
+========================= */
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x000000, 5, 20);
+
+const camera = new THREE.PerspectiveCamera(
+  60,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  100
+);
+
+camera.position.set(0, 1, 6);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+/* =========================
+   LIGHTING RIG
+========================= */
+
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+keyLight.position.set(5, 5, 5);
+scene.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0xff0033, 0.8);
+rimLight.position.set(-5, 2, -5);
+scene.add(rimLight);
+
+const ambient = new THREE.AmbientLight(0x222222);
+scene.add(ambient);
+
+/* =========================
+   FLOATING CORVETTE (PROXY)
+========================= */
+
+const carGroup = new THREE.Group();
+
+const body = new THREE.Mesh(
+  new THREE.BoxGeometry(2, 0.6, 4),
+  new THREE.MeshStandardMaterial({
+    color: 0xb3001b, // cherry red
+    metalness: 0.9,
+    roughness: 0.25
+  })
+);
+
+body.position.y = 0.5;
+carGroup.add(body);
+
+scene.add(carGroup);
+
+/* floating illusion */
+carGroup.position.y = 0.3;
+
+/* =========================
+   RENDER LOOP
+========================= */
+
+function animate() {
+  requestAnimationFrame(animate);
+
+  carGroup.rotation.y += 0.002;
+
+  renderer.render(scene, camera);
+}
+
+animate();
+
+/* =========================
+   SCROLL CGI TIMELINE
+========================= */
+
+const tl = gsap.timeline({
+  scrollTrigger: {
+    trigger: document.body,
+    start: "top top",
+    end: "bottom bottom",
+    scrub: true
+  }
+});
+
+/* =========================
+   HERO / FLOAT STATE
+========================= */
+
+tl.to(camera.position, {
+  z: 5
+}, 0);
+
+tl.to(carGroup.position, {
+  y: 0.4
+}, 0);
+
+/* =========================
+   PRE-WASH ZOOM
+========================= */
+
+tl.to(camera.position, {
+  z: 4
+}, 0.2);
+
+/* =========================
+   FOAM STAGE (SLOW ORBIT FEEL)
+========================= */
+
+tl.to(carGroup.rotation, {
+  y: Math.PI * 2
+}, 0.3);
+
+tl.to(keyLight, {
+  intensity: 0.6
+}, 0.3);
+
+/* =========================
+   CONTACT WASH (CRISP LIGHT)
+========================= */
+
+tl.to(keyLight, {
+  intensity: 1.8
+}, 0.5);
+
+tl.to(rimLight, {
+  intensity: 1.2
+}, 0.5);
+
+/* =========================
+   DRY PROCESS (PULL BACK)
+========================= */
+
+tl.to(camera.position, {
+  z: 6,
+  y: 1.2
+}, 0.7);
+
+tl.to(carGroup.scale, {
+  x: 1.05,
+  y: 1.05,
+  z: 1.05
+}, 0.7);
+
+/* =========================
+   FINAL REVEAL HOLD
+========================= */
+
+tl.to({}, { duration: 1 });
+
+/* =========================
+   RESIZE HANDLER
+========================= */
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
