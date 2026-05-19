@@ -2,158 +2,174 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>CMPLX Detailing CGI Scroll Experience</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMPLX Detailing — Premium Automotive Care</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;600;700&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
   <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red:    #b3001b;
+      --silver: rgba(200, 192, 178, 0.65);
+      --white:  #ffffff;
+      --gold:   rgba(190, 168, 138, 0.75);
+    }
+
+    html { scroll-behavior: auto; }
+
     body {
-      margin: 0;
+      background: #000;
       overflow-x: hidden;
-      background: black;
-      font-family: Arial, sans-serif;
+      font-family: 'Inter', Arial, sans-serif;
+      color: var(--white);
     }
 
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-    }
-
-    .section {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 40px;
-      font-weight: bold;
-      letter-spacing: 2px;
-      opacity: 0;
-    }
-
-    .overlay {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      color: white;
-      z-index: 10;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-
-    /* ── Loading screen ── */
-    #loading-screen {
+    /* ─────────────────────────────────────────
+       CANVAS — fixed, fills viewport
+    ───────────────────────────────────────── */
+    #c {
       position: fixed;
       inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    /* ─────────────────────────────────────────
+       SCROLL CONTAINER — creates scroll height
+    ───────────────────────────────────────── */
+    #scroll-container {
+      position: relative;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .scroll-section {
+      height: 100vh;
+      width: 100%;
+    }
+
+    /* ─────────────────────────────────────────
+       LOADING SCREEN
+    ───────────────────────────────────────── */
+    #loader {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
       background: #000;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      z-index: 200;
-      transition: opacity 0.9s ease;
-      pointer-events: none;
+      gap: 32px;
+      transition: opacity 1s ease;
     }
+    #loader.fade-out { opacity: 0; pointer-events: none; }
 
-    #loading-screen.hidden {
-      opacity: 0;
-    }
-
-    #loading-label {
-      color: rgba(255,255,255,0.35);
-      font-size: 11px;
-      letter-spacing: 0.35em;
+    .loader-brand {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0.5em;
       text-transform: uppercase;
-      margin-bottom: 28px;
-      font-family: Arial, sans-serif;
+      color: var(--gold);
     }
 
-    #loading-track {
-      width: 180px;
+    .loader-bar-wrap {
+      width: 200px;
       height: 1px;
-      background: rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.08);
       position: relative;
-      overflow: hidden;
     }
-
-    #loading-bar {
+    .loader-bar {
       position: absolute;
-      top: 0; left: 0;
-      height: 100%;
+      inset: 0;
       width: 0%;
-      background: rgba(255,255,255,0.75);
-      transition: width 0.15s linear;
+      background: rgba(255,255,255,0.7);
+      transition: width 0.12s linear;
+    }
+    .loader-pct {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.2);
     }
 
-    /* ══════════════════════════════════════════
-       STAGE OVERLAYS
-    ══════════════════════════════════════════ */
-
-    /* Shared base — all scroll-driven stage panels */
-    .stage-ov {
+    /* ─────────────────────────────────────────
+       FIXED UI CHROME
+    ───────────────────────────────────────── */
+    #brand-bar {
       position: fixed;
-      bottom: 10vh;
-      left: 8vw;
-      z-index: 5;
+      top: 32px;
+      left: 40px;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #brand-bar .wordmark {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.38em;
+      text-transform: uppercase;
+      color: var(--white);
       opacity: 0;
-      pointer-events: none;
+    }
+    #brand-bar .sub {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0;
     }
 
-    .ov-accent {
-      display: block;
-      width: 26px;
-      height: 2px;
-      background: #b3001b;
-      margin-bottom: 14px;
+    #top-right {
+      position: fixed;
+      top: 34px;
+      right: 40px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 32px;
     }
-
-    .ov-num {
-      display: block;
+    #top-right a {
       font-family: 'Oswald', Arial, sans-serif;
       font-size: 10px;
       font-weight: 400;
-      letter-spacing: 0.44em;
-      color: rgba(190, 168, 138, 0.72);
+      letter-spacing: 0.38em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      color: rgba(255,255,255,0.45);
+      text-decoration: none;
+      opacity: 0;
+      transition: color 0.3s;
+      pointer-events: auto;
     }
+    #top-right a:hover { color: rgba(255,255,255,0.9); }
 
-    .ov-title {
-      font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(52px, 7.5vw, 116px);
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 0.88;
-      text-transform: uppercase;
-      color: #ffffff;
-      margin: 0 0 20px;
-      text-shadow: 0 0 80px rgba(0,0,0,0.95), 0 2px 18px rgba(0,0,0,0.8);
-    }
-
-    .ov-desc {
-      font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(10px, 1.05vw, 13px);
-      font-weight: 300;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: rgba(200, 190, 175, 0.6);
-      line-height: 1.8;
-    }
-
-    /* ── Hero overlay ─────────────────────── */
-
-    #ov-hero {
+    /* ─────────────────────────────────────────
+       STAGE OVERLAYS  (fixed, pointer-events: none)
+    ───────────────────────────────────────── */
+    .stage {
       position: fixed;
       inset: 0;
-      z-index: 5;
+      z-index: 10;
+      pointer-events: none;
+      opacity: 0;
       display: flex;
       flex-direction: column;
+    }
+
+    /* ── HERO ── */
+    #stage-hero {
       align-items: center;
       justify-content: center;
       text-align: center;
-      opacity: 1;
-      pointer-events: none;
     }
 
     .hero-ghost {
@@ -162,10 +178,10 @@
       left: 50%;
       transform: translate(-50%, -50%);
       font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(110px, 22vw, 320px);
+      font-size: clamp(120px, 24vw, 380px);
       font-weight: 700;
-      letter-spacing: -0.04em;
-      color: rgba(255,255,255,0.022);
+      letter-spacing: -0.05em;
+      color: rgba(255,255,255,0.018);
       line-height: 1;
       white-space: nowrap;
       user-select: none;
@@ -175,496 +191,749 @@
       font-family: 'Oswald', Arial, sans-serif;
       font-size: 10px;
       font-weight: 300;
-      letter-spacing: 0.48em;
-      color: rgba(190, 168, 138, 0.68);
+      letter-spacing: 0.55em;
       text-transform: uppercase;
-      margin-bottom: 22px;
+      color: var(--gold);
+      margin-bottom: 24px;
     }
 
     .hero-headline {
       font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(40px, 5.5vw, 84px);
+      font-size: clamp(42px, 6vw, 96px);
       font-weight: 700;
-      letter-spacing: 0.02em;
-      line-height: 1.0;
+      letter-spacing: 0.04em;
+      line-height: 0.92;
       text-transform: uppercase;
-      color: #ffffff;
-      margin: 0 0 22px;
-      text-shadow: 0 0 100px rgba(0,0,0,1), 0 4px 40px rgba(0,0,0,0.9);
+      color: var(--white);
+      text-shadow: 0 0 120px rgba(0,0,0,1), 0 4px 40px rgba(0,0,0,0.95);
+      margin-bottom: 28px;
+    }
+
+    .hero-rule {
+      display: block;
+      width: 1px;
+      height: 40px;
+      background: rgba(255,255,255,0.18);
+      margin: 0 auto 20px;
     }
 
     .hero-sub {
-      font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(10px, 1.1vw, 14px);
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: clamp(11px, 1.1vw, 14px);
       font-weight: 300;
-      letter-spacing: 0.34em;
-      text-transform: uppercase;
-      color: rgba(200, 190, 175, 0.52);
+      letter-spacing: 0.18em;
+      color: var(--silver);
+      line-height: 1.7;
     }
 
-    .hero-scroll-hint {
+    .scroll-cue {
       position: absolute;
-      bottom: 8vh;
+      bottom: 9vh;
       left: 50%;
       transform: translateX(-50%);
-      font-family: 'Oswald', Arial, sans-serif;
-      font-size: 9px;
-      font-weight: 300;
-      letter-spacing: 0.5em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.24);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
-    }
-
-    .hero-scroll-hint::after {
-      content: '';
-      display: block;
-      width: 1px;
-      height: 52px;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.24), transparent);
-      animation: scrollPulse 2.4s ease-in-out infinite;
-    }
-
-    @keyframes scrollPulse {
-      0%, 100% { opacity: 0.28; transform: scaleY(1);    }
-      50%       { opacity: 0.70; transform: scaleY(0.82); }
-    }
-
-    /* ── Final Reveal — centred + pricing ─── */
-
-    #ov-final {
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-    }
-
-    #ov-final .ov-accent {
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .pricing-eyebrow {
+      gap: 10px;
       font-family: 'Oswald', Arial, sans-serif;
-      font-size: 9px;
+      font-size: 8px;
       font-weight: 300;
       letter-spacing: 0.55em;
       text-transform: uppercase;
-      color: rgba(190, 168, 138, 0.52);
-      margin: 28px 0 20px;
+      color: rgba(255,255,255,0.22);
+    }
+    .scroll-cue::after {
+      content: '';
+      width: 1px;
+      height: 56px;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.22), transparent);
+      animation: cueBreath 2.6s ease-in-out infinite;
+    }
+    @keyframes cueBreath {
+      0%,100% { opacity: 0.3; }
+      50%      { opacity: 0.8; }
+    }
+
+    /* ── DETAIL STAGES (left-anchored) ── */
+    .stage-inner {
+      position: absolute;
+      bottom: 10vh;
+      left: 8vw;
+    }
+
+    .stage-accent {
+      display: block;
+      width: 28px;
+      height: 2px;
+      background: var(--red);
+      margin-bottom: 16px;
+    }
+
+    .stage-num {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.46em;
+      color: var(--gold);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .stage-title {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: clamp(54px, 8vw, 128px);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 0.86;
+      text-transform: uppercase;
+      color: var(--white);
+      text-shadow: 0 0 80px rgba(0,0,0,0.98), 0 2px 20px rgba(0,0,0,0.9);
+      margin-bottom: 22px;
+    }
+
+    .stage-desc {
+      font-family: 'Inter', Arial, sans-serif;
+      font-size: clamp(11px, 1.05vw, 14px);
+      font-weight: 300;
+      letter-spacing: 0.06em;
+      color: var(--silver);
+      line-height: 1.75;
+      max-width: 280px;
+    }
+
+    /* ── FINAL REVEAL (centred + pricing) ── */
+    #stage-final {
+      align-items: center;
+      justify-content: flex-end;
+      padding-bottom: 8vh;
+      text-align: center;
+    }
+    #stage-final .stage-accent { margin-left: auto; margin-right: auto; }
+    #stage-final .stage-desc   { max-width: 380px; margin: 0 auto 40px; }
+
+    .pricing-label {
+      font-family: 'Oswald', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 300;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: rgba(190,168,138,0.45);
+      margin-bottom: 20px;
     }
 
     .pricing-grid {
       display: flex;
       gap: 2px;
       margin-bottom: 32px;
+      justify-content: center;
     }
 
     .pkg {
-      flex: 1;
-      padding: 22px 28px 24px;
-      border: 1px solid rgba(255,255,255,0.065);
-      background: rgba(0,0,0,0.52);
-      min-width: 118px;
+      padding: 24px 28px 26px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: rgba(0,0,0,0.55);
+      min-width: 122px;
+      text-align: center;
     }
-
-    .pkg-featured {
-      border-color: rgba(179,0,27,0.42);
-      background: rgba(179,0,27,0.07);
+    .pkg-hot {
+      border-color: rgba(179,0,27,0.4);
+      background: rgba(179,0,27,0.06);
     }
-
     .pkg-name {
       font-family: 'Oswald', Arial, sans-serif;
       font-size: 9px;
       font-weight: 400;
-      letter-spacing: 0.36em;
+      letter-spacing: 0.38em;
       text-transform: uppercase;
-      color: rgba(200,190,175,0.62);
+      color: rgba(200,190,175,0.6);
       margin-bottom: 6px;
     }
-
-    .pkg-time {
+    .pkg-dur {
       font-family: 'Oswald', Arial, sans-serif;
       font-size: 9px;
       font-weight: 300;
       letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(180,160,130,0.38);
+      color: rgba(180,160,130,0.35);
       margin-bottom: 14px;
     }
-
     .pkg-price {
       font-family: 'Oswald', Arial, sans-serif;
-      font-size: clamp(26px, 2.8vw, 40px);
+      font-size: clamp(28px, 2.8vw, 40px);
       font-weight: 600;
       letter-spacing: -0.02em;
-      color: #ffffff;
+      color: var(--white);
       line-height: 1;
     }
 
-    .cta-btn {
+    .cta {
       display: inline-block;
       font-family: 'Oswald', Arial, sans-serif;
       font-size: 11px;
       font-weight: 500;
-      letter-spacing: 0.42em;
+      letter-spacing: 0.44em;
       text-transform: uppercase;
-      color: #ffffff;
-      background: #b3001b;
-      padding: 16px 46px 14px;
+      color: var(--white);
+      background: var(--red);
+      padding: 17px 52px 15px;
       text-decoration: none;
       pointer-events: auto;
-      transition: background 0.25s ease, letter-spacing 0.25s ease;
+      transition: background 0.25s, letter-spacing 0.25s;
+    }
+    .cta:hover { background: #d1001f; letter-spacing: 0.54em; }
+
+    /* ─────────────────────────────────────────
+       STAGE PROGRESS DOT INDICATOR
+    ───────────────────────────────────────── */
+    #stage-dots {
+      position: fixed;
+      right: 36px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      opacity: 0;
+    }
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      transition: background 0.4s, transform 0.4s;
+    }
+    .dot.active {
+      background: var(--red);
+      transform: scale(1.5);
     }
 
-    .cta-btn:hover {
-      background: #d1001f;
-      letter-spacing: 0.52em;
+    /* ─────────────────────────────────────────
+       RESPONSIVE
+    ───────────────────────────────────────── */
+    @media (max-width: 768px) {
+      #brand-bar { left: 20px; top: 20px; }
+      #top-right { right: 20px; top: 22px; gap: 18px; }
+      .stage-inner { left: 6vw; bottom: 8vh; }
+      #stage-dots  { display: none; }
     }
   </style>
 </head>
 
 <body>
 
-<div id="loading-screen">
-  <div id="loading-label">CMPLX Detailing — Loading</div>
-  <div id="loading-track"><div id="loading-bar"></div></div>
+<!-- ── CANVAS ─────────────────────────── -->
+<canvas id="c"></canvas>
+
+<!-- ── LOADING SCREEN ─────────────────── -->
+<div id="loader">
+  <div class="loader-brand">CMPLX Detailing</div>
+  <div class="loader-bar-wrap"><div class="loader-bar" id="loader-bar"></div></div>
+  <div class="loader-pct" id="loader-pct">0%</div>
 </div>
 
-<div class="overlay">
-  CMPLX DETAILING — CGI SCROLL ENGINE
+<!-- ── FIXED UI CHROME ────────────────── -->
+<div id="brand-bar">
+  <span class="wordmark">CMPLX</span>
+  <span class="sub">Automotive Detailing</span>
 </div>
 
-<!-- ── Hero overlay ───────────────────────────── -->
-<div id="ov-hero">
+<div id="top-right">
+  <a href="#">Services</a>
+  <a href="#" style="pointer-events:auto; color:var(--white); background:var(--red); padding:9px 22px; font-family:Oswald,Arial,sans-serif; font-size:10px; letter-spacing:0.38em; text-transform:uppercase; text-decoration:none; transition:background 0.25s;" onmouseover="this.style.background='#d1001f'" onmouseout="this.style.background='var(--red)'">Book</a>
+</div>
+
+<div id="stage-dots">
+  <div class="dot active" title="Hero"></div>
+  <div class="dot" title="Pre-Wash"></div>
+  <div class="dot" title="Foam Bath"></div>
+  <div class="dot" title="Contact Wash"></div>
+  <div class="dot" title="Dry Process"></div>
+  <div class="dot" title="Final Reveal"></div>
+</div>
+
+<!-- ── STAGE OVERLAYS ─────────────────── -->
+
+<!-- 1. Hero -->
+<div id="stage-hero" class="stage">
   <span class="hero-ghost" aria-hidden="true">CMPLX</span>
-  <p class="hero-eyebrow">Automotive Detailing Studio</p>
+  <p class="hero-eyebrow">Premium Automotive Detailing</p>
   <h1 class="hero-headline">The Detail<br>Is Everything.</h1>
-  <p class="hero-sub">Premium care. Zero compromise.</p>
-  <span class="hero-scroll-hint">Scroll</span>
+  <span class="hero-rule"></span>
+  <p class="hero-sub">Studio-grade precision care.<br>Every panel. Every curve. Every time.</p>
+  <span class="scroll-cue">Scroll</span>
 </div>
 
-<!-- ── Stage overlays ──────────────────────────── -->
-<div id="ov-prewash" class="stage-ov">
-  <span class="ov-accent"></span>
-  <span class="ov-num">01 / Pre-Wash</span>
-  <h2 class="ov-title">Pre-<br>Wash</h2>
-  <p class="ov-desc">Contaminant removal.<br>No shortcuts.</p>
+<!-- 2. Pre-Wash -->
+<div id="stage-prewash" class="stage">
+  <div class="stage-inner">
+    <span class="stage-accent"></span>
+    <span class="stage-num">01 — Pre-Wash</span>
+    <h2 class="stage-title">Pre-<br>Wash</h2>
+    <p class="stage-desc">Every session begins before contact.<br>Traffic film, brake dust, and bonded contaminants dissolved — safely — before a single mitt touches the paint.</p>
+  </div>
 </div>
 
-<div id="ov-foambath" class="stage-ov">
-  <span class="ov-accent"></span>
-  <span class="ov-num">02 / Foam Bath</span>
-  <h2 class="ov-title">Foam<br>Bath</h2>
-  <p class="ov-desc">Snow foam. Dwell time.<br>Full encapsulation.</p>
+<!-- 3. Foam Bath -->
+<div id="stage-foam" class="stage">
+  <div class="stage-inner">
+    <span class="stage-accent"></span>
+    <span class="stage-num">02 — Foam Bath</span>
+    <h2 class="stage-title">Foam<br>Bath</h2>
+    <p class="stage-desc">Dense, clinging snow foam blankets every surface. Dwell time lifts surface contamination and lubricates for the safest possible contact wash.</p>
+  </div>
 </div>
 
-<div id="ov-contactwash" class="stage-ov">
-  <span class="ov-accent"></span>
-  <span class="ov-num">03 / Contact Wash</span>
-  <h2 class="ov-title">Contact<br>Wash</h2>
-  <p class="ov-desc">Lubricated microfiber.<br>Zero swirl. Zero compromise.</p>
+<!-- 4. Contact Wash -->
+<div id="stage-contact" class="stage">
+  <div class="stage-inner">
+    <span class="stage-accent"></span>
+    <span class="stage-num">03 — Contact Wash</span>
+    <h2 class="stage-title">Contact<br>Wash</h2>
+    <p class="stage-desc">Premium microfiber. Lubricated two-bucket method. The paint is treated like what it is — a mirror. Zero swirl. Zero compromise.</p>
+  </div>
 </div>
 
-<div id="ov-dry" class="stage-ov">
-  <span class="ov-accent"></span>
-  <span class="ov-num">04 / Dry Process</span>
-  <h2 class="ov-title">Dry<br>Process</h2>
-  <p class="ov-desc">Forced air. Panel by panel.<br>Spotless finish.</p>
+<!-- 5. Dry Process -->
+<div id="stage-dry" class="stage">
+  <div class="stage-inner">
+    <span class="stage-accent"></span>
+    <span class="stage-num">04 — Dry Process</span>
+    <h2 class="stage-title">Dry<br>Process</h2>
+    <p class="stage-desc">Forced-air drying eliminates water marks before they form. Panel by panel. Shuts and jambs included. Nothing is rushed.</p>
+  </div>
 </div>
 
-<div id="ov-final" class="stage-ov">
-  <span class="ov-accent"></span>
-  <span class="ov-num">05 / Final Reveal</span>
-  <h2 class="ov-title">Final<br>Reveal</h2>
-  <p class="ov-desc">Ceramic-grade protection. Delivered.</p>
-  <p class="pricing-eyebrow">Detail Packages</p>
+<!-- 6. Final Reveal -->
+<div id="stage-final" class="stage">
+  <span class="stage-accent"></span>
+  <span class="stage-num">05 — Final Reveal</span>
+  <h2 class="stage-title" style="font-size:clamp(48px,6.5vw,104px);">Final<br>Reveal</h2>
+  <p class="stage-desc">Ceramic-grade protection sealed.<br>Paint corrected. Gloss restored.<br>The way it should have always looked.</p>
+  <p class="pricing-label">Detail Packages</p>
   <div class="pricing-grid">
     <div class="pkg">
       <div class="pkg-name">Essential</div>
-      <div class="pkg-time">4 Hours</div>
+      <div class="pkg-dur">4 Hours</div>
       <div class="pkg-price">$299</div>
     </div>
-    <div class="pkg pkg-featured">
+    <div class="pkg pkg-hot">
       <div class="pkg-name">Signature</div>
-      <div class="pkg-time">7 Hours</div>
+      <div class="pkg-dur">7 Hours</div>
       <div class="pkg-price">$549</div>
     </div>
     <div class="pkg">
       <div class="pkg-name">Prestige</div>
-      <div class="pkg-time">Full Day</div>
+      <div class="pkg-dur">Full Day</div>
       <div class="pkg-price">$999</div>
     </div>
   </div>
-  <a class="cta-btn" href="#">Book Your Session &rarr;</a>
+  <a class="cta" href="#">Book Your Session &rarr;</a>
 </div>
 
-<div class="section">PRE-WASH</div>
-<div class="section">FOAM BATH</div>
-<div class="section">CONTACT WASH</div>
-<div class="section">DRY PROCESS</div>
-<div class="section">FINAL REVEAL</div>
+<!-- ── SCROLL SPACER SECTIONS ─────────── -->
+<div id="scroll-container">
+  <div class="scroll-section" id="s-hero"></div>
+  <div class="scroll-section" id="s-prewash"></div>
+  <div class="scroll-section" id="s-foam"></div>
+  <div class="scroll-section" id="s-contact"></div>
+  <div class="scroll-section" id="s-dry"></div>
+  <div class="scroll-section" id="s-final"></div>
+</div>
 
+<!-- ── MAIN SCRIPT ─────────────────────── -->
 <script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { RoomEnvironment } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js";
-import gsap from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js";
-import { ScrollTrigger } from "https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js";
-import { initCarLoader } from "./js/carLoader.js";
+
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GLTFLoader }      from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader }     from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
+import gsap                from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/index.js';
+import { ScrollTrigger }   from 'https://cdn.jsdelivr.net/npm/gsap@3.12.5/ScrollTrigger.js';
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* =========================
-   SCENE SETUP
-========================= */
-
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0x000000, 5, 20);
-
-const camera = new THREE.PerspectiveCamera(
-  60,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  100
-);
-
-camera.position.set(0, 1, 6);
-
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+/* ═══════════════════════════════════════
+   RENDERER
+═══════════════════════════════════════ */
+const canvas   = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
-document.body.appendChild(renderer.domElement);
+renderer.shadowMap.enabled  = true;
+renderer.shadowMap.type     = THREE.PCFSoftShadowMap;
+renderer.toneMapping        = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+renderer.outputColorSpace   = THREE.SRGBColorSpace;
 
-/* =========================
-   ENVIRONMENT MAP
-   Studio-quality IBL for metallic paint reflections.
-   Does not affect background (stays black).
-========================= */
+/* ═══════════════════════════════════════
+   SCENE
+═══════════════════════════════════════ */
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x000000);
+scene.fog = new THREE.FogExp2(0x000000, 0.045);
 
+/* ═══════════════════════════════════════
+   CAMERA
+═══════════════════════════════════════ */
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 1.4, 8);
+camera.lookAt(0, 0.6, 0);
+
+// Camera orbit state — driven by GSAP
+const cam = {
+  radius:    8,
+  theta:     0,       // horizontal angle (radians)
+  phi:       0.18,    // vertical angle (radians, 0 = equator)
+  targetX:   0,
+  targetY:   0.6,
+  targetZ:   0,
+  fov:       42,
+};
+
+/* ═══════════════════════════════════════
+   ENVIRONMENT MAP (studio IBL)
+═══════════════════════════════════════ */
 const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.08).texture;
+scene.environment = envTexture;
 pmrem.dispose();
 
-/* =========================
+/* ═══════════════════════════════════════
    LIGHTING RIG
-========================= */
+═══════════════════════════════════════ */
 
-const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
-keyLight.position.set(5, 5, 5);
+// Primary key — top-front
+const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+keyLight.position.set(4, 8, 6);
 keyLight.castShadow = true;
 keyLight.shadow.mapSize.set(2048, 2048);
-keyLight.shadow.camera.left   = -6;
-keyLight.shadow.camera.right  =  6;
-keyLight.shadow.camera.top    =  6;
-keyLight.shadow.camera.bottom = -6;
+keyLight.shadow.camera.near   = 0.5;
+keyLight.shadow.camera.far    = 40;
+keyLight.shadow.camera.left   = -8;
+keyLight.shadow.camera.right  =  8;
+keyLight.shadow.camera.top    =  8;
+keyLight.shadow.camera.bottom = -8;
 keyLight.shadow.bias = -0.001;
 scene.add(keyLight);
 
-const rimLight = new THREE.DirectionalLight(0xff0033, 0.8);
-rimLight.position.set(-5, 2, -5);
+// Red rim — signature CMPLX accent
+const rimLight = new THREE.DirectionalLight(0xff0022, 0.9);
+rimLight.position.set(-6, 2, -5);
 scene.add(rimLight);
 
-const ambient = new THREE.AmbientLight(0x222222);
+// Cold fill from opposite side
+const fillLight = new THREE.DirectionalLight(0x8ab4ff, 0.35);
+fillLight.position.set(6, 1, -6);
+scene.add(fillLight);
+
+// Warm under-glow
+const underLight = new THREE.PointLight(0xff4400, 0.4, 12);
+underLight.position.set(0, -1.5, 0);
+scene.add(underLight);
+
+// Ambient base
+const ambient = new THREE.AmbientLight(0x111111, 1);
 scene.add(ambient);
 
-/* =========================
-   REFLECTIVE STUDIO FLOOR
-   Dark metallic disc — catches shadow + env reflections.
-========================= */
-
+/* ═══════════════════════════════════════
+   STUDIO FLOOR — dark reflective disc
+═══════════════════════════════════════ */
 const floor = new THREE.Mesh(
-  new THREE.CircleGeometry(8, 72),
+  new THREE.CircleGeometry(14, 80),
   new THREE.MeshStandardMaterial({
-    color:           0x050505,
-    metalness:       0.85,
-    roughness:       0.18,
-    envMapIntensity: 1.6,
+    color:           0x030303,
+    metalness:       0.9,
+    roughness:       0.12,
+    envMapIntensity: 1.8,
   })
 );
 floor.rotation.x = -Math.PI / 2;
+floor.position.y  = -0.01;
 floor.receiveShadow = true;
 scene.add(floor);
 
-/* =========================
-   LOADING SCREEN HANDLERS
-========================= */
+/* ═══════════════════════════════════════
+   CAR GROUP + FLOAT PIVOT
+═══════════════════════════════════════ */
+const carGroup  = new THREE.Group(); // GSAP scroll target
+const floatPivot = new THREE.Group(); // render-loop sine float
+carGroup.add(floatPivot);
+scene.add(carGroup);
 
-const loadingScreen = document.getElementById("loading-screen");
-const loadingBar    = document.getElementById("loading-bar");
+/* ═══════════════════════════════════════
+   GLTF LOAD
+═══════════════════════════════════════ */
+const loaderBar = document.getElementById('loader-bar');
+const loaderPct = document.getElementById('loader-pct');
+const loaderEl  = document.getElementById('loader');
 
-function _onProgress(p) {
-  if (loadingBar) loadingBar.style.width = `${Math.round(p * 100)}%`;
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/libs/draco/');
+
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+gltfLoader.load(
+  './models/corvette.glb',
+  (gltf) => {
+    const model = gltf.scene;
+
+    // ── Center and scale ──
+    const box    = new THREE.Box3().setFromObject(model);
+    const center = box.getCenter(new THREE.Vector3());
+    const size   = box.getSize(new THREE.Vector3());
+    model.position.sub(center);
+    const scale = 4.2 / Math.max(size.x, size.z);
+    model.scale.setScalar(scale);
+    const box2 = new THREE.Box3().setFromObject(model);
+    model.position.y -= box2.min.y;   // sit on floor plane
+
+    // ── Material pass ──
+    model.traverse((node) => {
+      if (!node.isMesh) return;
+      node.castShadow    = true;
+      node.receiveShadow = true;
+      if (!node.material) return;
+
+      const mats = Array.isArray(node.material) ? node.material : [node.material];
+      mats.forEach(mat => {
+        mat.envMapIntensity = 2.2;
+        // Boost metallic surfaces
+        if (mat.metalness > 0.3) {
+          mat.metalness = Math.min(mat.metalness + 0.1, 1.0);
+          mat.roughness = Math.max(mat.roughness - 0.05, 0.05);
+        }
+        // Make glass read correctly
+        if (mat.transparent || mat.opacity < 0.95) {
+          mat.envMapIntensity = 3.0;
+        }
+      });
+    });
+
+    floatPivot.add(model);
+
+    // ── Store paint material ref for scroll transitions ──
+    window._carModel = model;
+
+    // ── Dismiss loader ──
+    loaderEl.classList.add('fade-out');
+    setTimeout(() => loaderEl.remove(), 1100);
+
+    // ── Reveal UI chrome ──
+    gsap.to('#brand-bar .wordmark', { opacity: 1, y: 0, duration: 1, delay: 0.3, ease: 'power2.out' });
+    gsap.to('#brand-bar .sub',      { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power2.out' });
+    gsap.to('#top-right a',         { opacity: 1, stagger: 0.1, duration: 0.8, delay: 0.6 });
+    gsap.to('#stage-dots',          { opacity: 1, duration: 0.8, delay: 0.8 });
+    gsap.to('#stage-hero',          { opacity: 1, duration: 1.2, delay: 0.4, ease: 'power2.out' });
+
+    // ── Build scroll timeline AFTER model ready ──
+    buildScrollTimeline();
+  },
+  (e) => {
+    const p = e.total > 0 ? e.loaded / e.total : 0;
+    loaderBar.style.width = `${Math.round(p * 100)}%`;
+    loaderPct.textContent  = `${Math.round(p * 100)}%`;
+  }
+);
+
+/* ═══════════════════════════════════════
+   SCROLL TIMELINE
+═══════════════════════════════════════ */
+function buildScrollTimeline() {
+
+  const sections = [
+    document.getElementById('s-hero'),
+    document.getElementById('s-prewash'),
+    document.getElementById('s-foam'),
+    document.getElementById('s-contact'),
+    document.getElementById('s-dry'),
+    document.getElementById('s-final'),
+  ];
+
+  const stages = [
+    document.getElementById('stage-hero'),
+    document.getElementById('stage-prewash'),
+    document.getElementById('stage-foam'),
+    document.getElementById('stage-contact'),
+    document.getElementById('stage-dry'),
+    document.getElementById('stage-final'),
+  ];
+
+  const dots = document.querySelectorAll('.dot');
+
+  /* ── Activate dot on section enter ── */
+  sections.forEach((section, i) => {
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top 55%',
+      end:   'bottom 45%',
+      onEnter:      () => setDot(i),
+      onEnterBack:  () => setDot(i),
+    });
+  });
+
+  function setDot(i) {
+    dots.forEach((d, j) => d.classList.toggle('active', j === i));
+  }
+
+  /* ─────────────────────────────────────
+     MASTER CAMERA ORBIT TIMELINE
+     Drives cam.radius / cam.theta / cam.phi / cam.targetY
+     Applied every frame via updateCamera()
+  ───────────────────────────────────── */
+  const camTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: document.getElementById('scroll-container'),
+      start:   'top top',
+      end:     'bottom bottom',
+      scrub:   1.8,
+    }
+  });
+
+  // HERO — wide establishing shot, slight drift
+  camTl.to(cam, { radius: 7.5, theta: 0,            phi: 0.14, targetY: 0.6, fov: 42, duration: 1 }, 0);
+
+  // PRE-WASH — move to front quarter, lower angle
+  camTl.to(cam, { radius: 5.8, theta: -0.55,        phi: 0.08, targetY: 0.3, fov: 38, duration: 1 }, 1);
+
+  // FOAM — sweep to side profile, rise slightly
+  camTl.to(cam, { radius: 5.5, theta: -Math.PI/2,  phi: 0.20, targetY: 0.5, fov: 40, duration: 1 }, 2);
+
+  // CONTACT WASH — close on rear quarter
+  camTl.to(cam, { radius: 4.2, theta: -Math.PI*0.7, phi: 0.12, targetY: 0.6, fov: 34, duration: 1 }, 3);
+
+  // DRY — pull back, higher angle showing full body
+  camTl.to(cam, { radius: 6.2, theta: Math.PI*0.15, phi: 0.30, targetY: 0.5, fov: 40, duration: 1 }, 4);
+
+  // FINAL REVEAL — dramatic pull-back, centred, level
+  camTl.to(cam, { radius: 8.5, theta: 0.12,         phi: 0.18, targetY: 0.6, fov: 44, duration: 1 }, 5);
+
+  /* ── Car slow rotation via GSAP (complements float) ── */
+  const rotTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: document.getElementById('scroll-container'),
+      start:   'top top',
+      end:     'bottom bottom',
+      scrub:   2.5,
+    }
+  });
+  rotTl.to(carGroup.rotation, { y: Math.PI * 1.6, ease: 'none' });
+
+  /* ─────────────────────────────────────
+     LIGHTING TRANSITIONS
+  ───────────────────────────────────── */
+  const lightTl = gsap.timeline({
+    scrollTrigger: {
+      trigger: document.getElementById('scroll-container'),
+      start:   'top top',
+      end:     'bottom bottom',
+      scrub:   1.4,
+    }
+  });
+
+  // HERO — standard dramatic
+  lightTl.to(keyLight,   { intensity: 1.4, duration: 1 }, 0);
+  lightTl.to(rimLight,   { intensity: 0.9, duration: 1 }, 0);
+  lightTl.to(underLight, { intensity: 0.4, duration: 1 }, 0);
+
+  // PRE-WASH — cooler, darker
+  lightTl.to(keyLight,   { intensity: 0.7,  duration: 1 }, 1);
+  lightTl.to(rimLight,   { intensity: 0.4,  duration: 1 }, 1);
+  lightTl.to(fillLight,  { intensity: 0.65, duration: 1 }, 1);
+  lightTl.to(underLight, { intensity: 0.2,  duration: 1 }, 1);
+
+  // FOAM BATH — soft diffuse, white glow
+  lightTl.to(keyLight,   { intensity: 1.1, duration: 1 }, 2);
+  lightTl.to(rimLight,   { intensity: 0.2, duration: 1 }, 2);
+  lightTl.to(fillLight,  { intensity: 0.9, duration: 1 }, 2);
+  lightTl.to(ambient,    { intensity: 2.5, duration: 1 }, 2);
+
+  // CONTACT WASH — crisp, focused
+  lightTl.to(keyLight,   { intensity: 2.0, duration: 1 }, 3);
+  lightTl.to(rimLight,   { intensity: 1.4, duration: 1 }, 3);
+  lightTl.to(fillLight,  { intensity: 0.4, duration: 1 }, 3);
+  lightTl.to(ambient,    { intensity: 0.8, duration: 1 }, 3);
+
+  // DRY — clean and bright
+  lightTl.to(keyLight,   { intensity: 2.4, duration: 1 }, 4);
+  lightTl.to(rimLight,   { intensity: 0.7, duration: 1 }, 4);
+  lightTl.to(underLight, { intensity: 0.6, duration: 1 }, 4);
+
+  // FINAL REVEAL — maximum drama
+  lightTl.to(keyLight,    { intensity: 2.8, duration: 1 }, 5);
+  lightTl.to(rimLight,    { intensity: 2.2, duration: 1 }, 5);
+  lightTl.to(underLight,  { intensity: 1.0, duration: 1 }, 5);
+  lightTl.to(ambient,     { intensity: 1.2, duration: 1 }, 5);
+
+  /* ─────────────────────────────────────
+     STAGE OVERLAY FADE-IN / FADE-OUT
+  ───────────────────────────────────── */
+
+  // Hero fades out as PRE-WASH scrolls in
+  gsap.to('#stage-hero', {
+    opacity: 0, y: -40, ease: 'none',
+    scrollTrigger: { trigger: sections[1], start: 'top 85%', end: 'top 20%', scrub: 0.6 }
+  });
+
+  // Detail stages — fade up in, hold, fade up out
+  const stageIds = ['#stage-prewash','#stage-foam','#stage-contact','#stage-dry','#stage-final'];
+  sections.slice(1).forEach((section, i) => {
+    gsap.timeline({
+      scrollTrigger: { trigger: section, start: 'top 60%', end: 'bottom 40%', scrub: 0.6 }
+    })
+    .fromTo(stageIds[i], { opacity: 0, y: 36 }, { opacity: 1, y: 0,   duration: 0.38, ease: 'none' })
+    .to(stageIds[i],                             { opacity: 0, y: -36, duration: 0.38, ease: 'none' });
+  });
 }
 
-function _onLoaded() {
-  if (loadingBar) loadingBar.style.width = "100%";
-  setTimeout(() => {
-    if (loadingScreen) loadingScreen.classList.add("hidden");
-  }, 400);
+/* ═══════════════════════════════════════
+   CAMERA UPDATE — polar coord → world pos
+═══════════════════════════════════════ */
+function updateCamera() {
+  const x = cam.radius * Math.sin(cam.theta) * Math.cos(cam.phi);
+  const y = cam.radius * Math.sin(cam.phi)   + cam.targetY;
+  const z = cam.radius * Math.cos(cam.theta) * Math.cos(cam.phi);
+  camera.position.set(x, y, z);
+  camera.lookAt(cam.targetX, cam.targetY, cam.targetZ);
+  if (camera.fov !== cam.fov) {
+    camera.fov = cam.fov;
+    camera.updateProjectionMatrix();
+  }
 }
 
-/* =========================
-   CAR LOADER
-   carGroup   — GSAP scroll target (position / rotation / scale)
-   floatPivot — render-loop float animation target
-========================= */
-
-const { carGroup, floatPivot } = initCarLoader(scene, {
-  onProgress: _onProgress,
-  onLoaded:   _onLoaded,
-});
-
-carGroup.position.y = 0.3;
-
-/* =========================
+/* ═══════════════════════════════════════
    RENDER LOOP
-========================= */
-
+═══════════════════════════════════════ */
 const clock = new THREE.Clock();
 
 function animate() {
   requestAnimationFrame(animate);
+  const t = clock.getElapsedTime();
 
-  // Float — drives floatPivot only; GSAP owns carGroup.position/rotation
-  floatPivot.position.y = Math.sin(clock.getElapsedTime() * 0.85) * 0.07;
+  // Cinematic float — vertical sine, very gentle
+  floatPivot.position.y = Math.sin(t * 0.75) * 0.06;
 
+  // Subtle continuous idle rotation blended with scroll rotation
+  // (scroll timeline handles main y-rotation; this adds micro-drift)
+  floatPivot.rotation.y = Math.sin(t * 0.18) * 0.04;
+
+  updateCamera();
   renderer.render(scene, camera);
 }
 
 animate();
 
-/* =========================
-   SCROLL CGI TIMELINE
-========================= */
-
-const tl = gsap.timeline({
-  scrollTrigger: {
-    trigger: document.body,
-    start: "top top",
-    end: "bottom bottom",
-    scrub: true
-  }
-});
-
-/* =========================
-   HERO / FLOAT STATE
-========================= */
-
-tl.to(camera.position, {
-  z: 5
-}, 0);
-
-tl.to(carGroup.position, {
-  y: 0.4
-}, 0);
-
-/* =========================
-   PRE-WASH ZOOM
-========================= */
-
-tl.to(camera.position, {
-  z: 4
-}, 0.2);
-
-/* =========================
-   FOAM STAGE (SLOW ORBIT FEEL)
-========================= */
-
-tl.to(carGroup.rotation, {
-  y: Math.PI * 2
-}, 0.3);
-
-tl.to(keyLight, {
-  intensity: 0.6
-}, 0.3);
-
-/* =========================
-   CONTACT WASH (CRISP LIGHT)
-========================= */
-
-tl.to(keyLight, {
-  intensity: 1.8
-}, 0.5);
-
-tl.to(rimLight, {
-  intensity: 1.2
-}, 0.5);
-
-/* =========================
-   DRY PROCESS (PULL BACK)
-========================= */
-
-tl.to(camera.position, {
-  z: 6,
-  y: 1.2
-}, 0.7);
-
-tl.to(carGroup.scale, {
-  x: 1.05,
-  y: 1.05,
-  z: 1.05
-}, 0.7);
-
-/* =========================
-   FINAL REVEAL HOLD
-========================= */
-
-tl.to({}, { duration: 1 });
-
-/* =========================
-   STAGE OVERLAY ANIMATIONS
-   Separate ScrollTrigger per section — never touches the camera tl.
-========================= */
-
-const sections  = document.querySelectorAll(".section");
-const stageIds  = ["#ov-prewash", "#ov-foambath", "#ov-contactwash", "#ov-dry", "#ov-final"];
-
-// Hero: starts fully visible, dissolves as first section scrolls in
-gsap.to("#ov-hero", {
-  opacity: 0,
-  y: -38,
-  ease: "none",
-  scrollTrigger: {
-    trigger: sections[0],
-    start: "top 88%",
-    end:   "top 22%",
-    scrub: 0.5,
-  }
-});
-
-// Each stage overlay: fade up in → hold → fade up out
-sections.forEach((section, i) => {
-  gsap.timeline({
-    scrollTrigger: {
-      trigger: section,
-      start: "top 62%",
-      end:   "bottom 38%",
-      scrub: 0.5,
-    }
-  })
-  .fromTo(stageIds[i],
-    { opacity: 0, y: 32 },
-    { opacity: 1, y: 0,   duration: 0.38, ease: "none" }
-  )
-  .to(stageIds[i],
-    { opacity: 0, y: -32, duration: 0.38, ease: "none" }
-  );
-});
-
-/* =========================
-   RESIZE HANDLER
-========================= */
-
-window.addEventListener("resize", () => {
+/* ═══════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════ */
+window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-</script>
 
+</script>
 </body>
 </html>
